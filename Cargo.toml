@@ -1,0 +1,18 @@
+[package]
+name = "nook"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+description = "A native GTK4 file manager for Hyprland / DankMaterialShell"
+license = "MIT"
+
+[dependencies]
+gtk = { package = "gtk4", version = "0.11", default-features = false, features = ["v4_18"] }
+gdk-pixbuf = "0.21"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+async-channel = "2"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+rcgen = { version = "0.13", default-features = false, features = ["crypto", "pem", "ring"] }
+socket2 = { version = "0.5", features = ["all"] }

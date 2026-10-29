@@ -1,0 +1,11 @@
+# Local, rootless GTK4 development sysroot.
+#
+# This machine has the GTK4 runtime but not the -dev headers, and `sudo` needs a
+# password, so Nook is built against a locally extracted copy of the Debian
+# `libgtk-4-dev` + dependency tree in `.sysroot/`.
+#
+# If you later install the real packages (`sudo apt install libgtk-4-dev`),
+# you can delete these three [env] entries and remove `.sysroot/` entirely.
+[env]
+PKG_CONFIG_SYSROOT_DIR = { value = ".sysroot", relative = true }
+PKG_CONFIG_PATH = { value = ".sysroot/pkgconfig", relative = true }
