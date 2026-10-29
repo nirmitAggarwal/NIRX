@@ -1,6 +1,6 @@
 # Features
 
-Every feature of Nook, what it does and how to reach it. Shortcuts are the
+Every feature of NIRX, what it does and how to reach it. Shortcuts are the
 defaults; all of them can be rebound (see
 [keyboard.md](keyboard.md#rebinding)).
 
@@ -34,14 +34,14 @@ defaults; all of them can be rebound (see
 
 ## Theming
 
-Nook reads the Material 3 palette that Matugen / DankMaterialShell generate from
+NIRX reads the Material 3 palette that Matugen / DankMaterialShell generate from
 the wallpaper (`~/.cache/DankMaterialShell/` and the DMS GTK colour file), and
 falls back to a built-in dark palette. Palette files are watched with GIO file
-monitors, so changing the wallpaper re-themes Nook while it runs — no restart.
+monitors, so changing the wallpaper re-themes NIRX while it runs — no restart.
 The file surface stays a fixed dark colour so thumbnails and text keep their
 contrast; every other colour follows the palette.
 
-Nothing system-wide is changed: Nook never edits `.desktop` files, the icon
+Nothing system-wide is changed: NIRX never edits `.desktop` files, the icon
 theme or the DMS configuration.
 
 ## Tabs
@@ -97,7 +97,7 @@ Recent Locations, Network) and **System** (File System, Temporary).
 
 ## Adaptive layout
 
-Nook stays usable at any window size instead of clipping:
+NIRX stays usable at any window size instead of clipping:
 
 | Window width | Sidebar |
 | --- | --- |
@@ -185,7 +185,7 @@ Archives are recognised by extension (`.zip`, `.tar`, `.tar.gz`, `.tgz`,
 - a text/code snippet for text files,
 - and metadata for everything else.
 
-Generation happens on worker threads with an on-disk cache in `~/.cache/nook`
+Generation happens on worker threads with an on-disk cache in `~/.cache/nirx`
 and a size limit (`preview_max_bytes`, 8 MiB by default).
 
 ## Preview icons (thumbnails)
@@ -206,7 +206,7 @@ is missing or a file cannot be decoded.
   and lists every folder that resolves to the current colour; `Alt+PageDown` /
   `Alt+PageUp` jump straight to the next / previous match.
 
-Colours are stored in Nook's config and painted onto the icon theme's folder
+Colours are stored in NIRX's config and painted onto the icon theme's folder
 icon in memory — neither the theme nor any `.desktop` file is written.
 
 ## Library views: Trash, recents, network
@@ -215,7 +215,7 @@ These are **states of the current tab**, not separate windows or extra tabs:
 
 - **Trash** — everything in the freedesktop trash, with the original path and
   deletion date.
-- **Recent Files** — files opened from Nook, newest first.
+- **Recent Files** — files opened from NIRX, newest first.
 - **Recent Locations** — folders visited recently.
 - **Network** — mounted network shares plus Windows shares, network servers,
   afc (iPhone/iPad) and MTP addresses.
@@ -266,9 +266,9 @@ changes and extension handling, previewed before anything is renamed.
 ```
 
 The file is found by walking up from the current folder, so one file at a
-project root serves every subfolder. Nook loads it automatically, adds a ▶
+project root serves every subfolder. NIRX loads it automatically, adds a ▶
 button to the toolbar, runs the chosen command in a terminal in that folder and
-shows the exit status. Commands are edited from Nook and saved back atomically
+shows the exit status. Commands are edited from NIRX and saved back atomically
 after validation. A command that looks destructive (`rm -rf`, `sudo`, …) asks
 for confirmation first.
 
@@ -287,19 +287,19 @@ Files open through GIO, respecting system MIME associations, `.desktop` entries
 and `XDG_CURRENT_DESKTOP` overrides.
 
 - **Open With…** (`Ctrl+Shift+O`) lists the apps registered for the type and can
-  set the default; "always" stores a Nook-local override instead of changing
+  set the default; "always" stores a NIRX-local override instead of changing
   system configuration.
 - **Default Applications & Commands…** manages those overrides and custom
   opener commands (keys may be a path, an extension or a MIME type; `%f`/`{}`
   expand to the selected files).
-- **Open Terminal Here** (`Ctrl+Alt+T`) uses the first terminal Nook finds
+- **Open Terminal Here** (`Ctrl+Alt+T`) uses the first terminal NIRX finds
   (kitty, foot, alacritty, wezterm, ghostty, konsole, ptyxis) in the current
   folder; the list is configurable.
 - **Open Folder in Zed** (configurable editor) is one menu entry away.
 
 ## LocalSend transfers
 
-Nook speaks the LocalSend protocol natively: no LocalSend window opens, and
+NIRX speaks the LocalSend protocol natively: no LocalSend window opens, and
 nothing is shelled out.
 
 - Select files or folders and press `Ctrl+Shift+S` (or the toolbar send button).

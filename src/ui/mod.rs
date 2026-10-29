@@ -249,7 +249,7 @@ impl AppUi {
                     }
                 });
             }
-            Err(err) => eprintln!("nook: LocalSend unavailable: {err}"),
+            Err(err) => eprintln!("nirx: LocalSend unavailable: {err}"),
         }
     }
 
@@ -3139,7 +3139,7 @@ impl AppUi {
         menu.append_submenu(Some("Repository"), &privacy);
 
         let about = gio::Menu::new();
-        about.append(Some("About Nook"), Some("win.about"));
+        about.append(Some("About NIRX"), Some("win.about"));
         menu.append_submenu(Some("About"), &about);
         menu
     }
@@ -3261,7 +3261,7 @@ impl AppUi {
         let help = gio::Menu::new();
         help.append(Some("Keyboard Shortcuts"), Some("win.shortcuts"));
         help.append(Some("Keyboard-only Guide"), Some("win.keyboard-guide"));
-        help.append(Some("About Nook"), Some("win.about"));
+        help.append(Some("About NIRX"), Some("win.about"));
         menu.append_submenu(Some("Help"), &help);
         menu
     }
@@ -3302,7 +3302,7 @@ impl AppUi {
         root.set_margin_bottom(14);
         root.set_margin_start(18);
         root.set_margin_end(18);
-        root.append(&dialogs::title_label("Using Nook without a mouse"));
+        root.append(&dialogs::title_label("Using NIRX without a mouse"));
         root.append(&dialogs::body_label(
             "Every window, menu and list is reachable from the keyboard. F10 opens the \
              menu bar; Tab and the arrow keys move; Enter activates; Escape backs out.",
@@ -3334,9 +3334,9 @@ impl AppUi {
 
     fn show_about(self: &Rc<Self>) {
         let about = gtk::AboutDialog::builder()
-            .program_name("Nook")
+            .program_name("NIRX")
             .version(env!("CARGO_PKG_VERSION"))
-            .comments("A native GTK4 file manager for Hyprland and DankMaterialShell.")
+            .comments("A developer-focused GTK4 file manager for Linux.")
             .website("https://github.com/")
             .license_type(gtk::License::MitX11)
             .modal(true)
@@ -3834,7 +3834,7 @@ pub fn build(app: &gtk::Application) -> Rc<AppUi> {
     let palette = Palette::load(None);
     let provider = theme::apply(&palette);
 
-    // Nook's own icon theme: Colloid when installed, unless configured.
+    // NIRX's own icon theme: Colloid when installed, unless configured.
     if let Some(theme_name) =
         icons::preferred_theme(config.icon_theme.as_deref(), palette.is_dark())
     {
@@ -3859,7 +3859,7 @@ pub fn build(app: &gtk::Application) -> Rc<AppUi> {
 
     let window = gtk::ApplicationWindow::builder()
         .application(app)
-        .title("Nook")
+        .title("NIRX")
         .default_width(config.window.width)
         .default_height(config.window.height)
         .build();
@@ -4283,7 +4283,7 @@ pub fn build(app: &gtk::Application) -> Rc<AppUi> {
     apply_shortcuts(app, &config);
     ui.start_transfer_service();
 
-    // Theme watcher keeps Nook in sync with wallpaper changes.
+    // Theme watcher keeps NIRX in sync with wallpaper changes.
     {
         let weak = Rc::downgrade(&ui);
         let watcher = theme::ThemeWatcher::new(move || {

@@ -1,16 +1,20 @@
-# Nook
+# NIRX
 
-A native GTK4 file manager for Linux, written in Rust. Nook is designed for
-Wayland desktops such as Hyprland and for [DankMaterialShell][dms]: it reads the
-Material 3 palette that Matugen/DMS generates from your wallpaper, follows it
-live, and otherwise relies only on desktop standards (XDG directories, GIO MIME
-associations and `.desktop` files) rather than KDE internals.
+NIRX is the next product identity for the existing Nook file manager. This release
+preserves the legacy `nook` configuration as a read-only fallback; user data is
+not moved or deleted automatically.
+
+NIRX is a native GTK4 file manager for Linux, written in Rust and designed for
+Wayland desktops such as Hyprland and [DankMaterialShell][dms]. It follows the
+Material 3 palette that Matugen/DMS generates from your wallpaper, while relying
+on desktop standards (XDG directories, GIO MIME associations and `.desktop`
+files) rather than KDE internals.
 
 [dms]: https://github.com/AvengeMedia/DankMaterialShell
 
 ## Features
 
-- **DMS theming that updates live.** Nook reads the generated palette, watches
+- **DMS theming that updates live.** NIRX reads the generated palette, watches
   the palette files with GIO file monitors and swaps its stylesheet without a
   restart. It falls back to the DMS GTK colour file and finally to a built-in
   dark palette.
@@ -18,10 +22,10 @@ associations and `.desktop` files) rather than KDE internals.
   associations, `.desktop` entries and `XDG_CURRENT_DESKTOP` overrides are
   respected. Open With, "set as default for this file type" and a local,
   optional per-extension override are available.
-- **Icon theme support.** Nook uses the desktop's icon theme for file types and
+- **Icon theme support.** NIRX uses the desktop's icon theme for file types and
   prefers **Colloid** automatically when it is installed (dark/light variant
   chosen from the palette). _Tools → Icon Theme…_ switches the theme live, or
-  pins one with `icon_theme` in the config; only Nook is affected, never the
+  pins one with `icon_theme` in the config; only NIRX is affected, never the
   desktop.
 - **Three views, your choice.** A full icon grid, a detailed list and a lazy
   recursive tree, with a toolbar switch, _View → Icon View / Detailed View_ and
@@ -44,7 +48,7 @@ associations and `.desktop` files) rather than KDE internals.
   default colour (Colloid blue by default) and any folder can override it from
   the right-click menu. Subfolders can inherit the nearest coloured ancestor
   (on by default, toggle under _Tools → Subfolders Inherit Colour_). Colours are
-  applied to the theme's folder icon, stored in Nook's config, and never modify
+  applied to the theme's folder icon, stored in NIRX's config, and never modify
   the icon theme or `.desktop` files.
 - **Recursive colour browsing.** _Tools → Folders With This Colour…_
   (`Ctrl+Shift+K`) scans the repository root for every folder that resolves to
@@ -70,7 +74,7 @@ associations and `.desktop` files) rather than KDE internals.
   symlinks, safe conflict prompts, permission errors reported per item.
 - **File-based Run commands.** `fm_run_task.json` at (or above) the current
   folder defines named commands; they are loaded automatically, edited from
-  Nook, saved back atomically with validation, and run in a terminal in the
+  NIRX, saved back atomically with validation, and run in a terminal in the
   current folder with output and exit status. Destructive commands ask first.
 - **Editable path bar.** `Ctrl+L` (or the pencil button) turns the breadcrumbs
   into a field that accepts typed or pasted absolute, `~` and relative paths;
@@ -78,8 +82,8 @@ associations and `.desktop` files) rather than KDE internals.
   folder with the file selected.
 - **LocalSend, built in.** Send the selection to a phone or another computer
   from the toolbar (`Ctrl+Shift+S`): devices are discovered over the LocalSend
-  protocol, transfers use HTTPS, progress and Cancel live in Nook, and incoming
-  transfers ask Accept / Decline in Nook's own window. No LocalSend window, no
+  protocol, transfers use HTTPS, progress and Cancel live in NIRX, and incoming
+  transfers ask Accept / Decline in NIRX's own window. No LocalSend window, no
   CLI, no daemon — see [docs/localsend.md](docs/localsend.md).
 - **Keyboard only.** `F10` opens a menu of dropdowns, `Ctrl+Shift+B` focuses the
   sidebar, `Shift+F10` (or the Menu key) opens the context menu on the
@@ -129,15 +133,15 @@ Optional tools, detected at runtime:
 | `ffmpeg` / `ffprobe`                                                        | Video thumbnails                    |
 | `git`                                                                       | Status badges                       |
 
-Nook never installs `.desktop` files, never edits system-wide MIME databases and
+NIRX never installs `.desktop` files, never edits system-wide MIME databases and
 never overwrites DMS configuration.
 
 ## Build and run
 
 ```sh
 cargo build --release
-./target/release/nook            # home folder
-./target/release/nook ~/Projects # start elsewhere
+./target/release/nirx            # home folder
+./target/release/nirx ~/Projects # start elsewhere
 ```
 
 Development build and tests:
@@ -178,13 +182,13 @@ Detailed documentation lives in [`docs/`](docs/README.md):
 
 | Path                                | Contents                            |
 | ----------------------------------- | ----------------------------------- |
-| `$XDG_CONFIG_HOME/nook/config.json` | All settings (see below)            |
+| `$XDG_CONFIG_HOME/nirx/config.json` | All settings (see below)            |
 | `fm_run_task.json` (project folder) | Per-tree Run commands (see below)   |
-| `$XDG_CACHE_HOME/nook/previews/`    | Preview thumbnails (safe to delete) |
+| `$XDG_CACHE_HOME/nirx/previews/`    | Preview thumbnails (safe to delete) |
 
 `config.json` is written atomically (temporary file + rename) on every change
 and on window close. An unreadable document is renamed to `config.json.broken`
-and defaults are used, so a corrupt file never leaves Nook unusable.
+and defaults are used, so a corrupt file never leaves NIRX unusable.
 
 Important keys:
 
@@ -224,7 +228,7 @@ Important keys:
 
 ### Run commands: `fm_run_task.json`
 
-Nook looks for `fm_run_task.json` in the current folder and then in each parent,
+NIRX looks for `fm_run_task.json` in the current folder and then in each parent,
 so one file at a project root serves the whole tree. Structure:
 
 ```json
@@ -241,11 +245,11 @@ Commands are directory-specific. _Settings → Folder Run Commands…_ (or the
 folder's `Run Commands…` menu) adds, edits and removes them; saving writes the
 nearest file, or creates one in the current folder when none exists. The JSON is
 validated before writing and an existing invalid file is reported rather than
-overwritten. Nook only runs a command you pick, shows its exact text first, and
+overwritten. NIRX only runs a command you pick, shows its exact text first, and
 confirms commands that can delete or overwrite data.
 
 `app_overrides` maps a file extension (`".png"`) or MIME type
-(`"image/png"`) to a desktop ID. It only affects Nook — the system association
+(`"image/png"`) to a desktop ID. It only affects NIRX — the system association
 stays untouched. "Set as default" in the Open With dialog goes through GIO,
 which writes a user-level `mimeapps.list`, never a system file.
 
@@ -263,7 +267,7 @@ folder follow only its own override or the global default.
 
 ## Icons
 
-Nook reads the icon theme from the desktop and uses full-colour MIME icons, not
+NIRX reads the icon theme from the desktop and uses full-colour MIME icons, not
 symbolic ones. When a theme named `Colloid*` is installed, it is chosen
 automatically, preferring `Colloid-Dark`/`Colloid-Light` to match the wallpaper
 palette; otherwise the desktop's current theme is used. Use _Tools → Icon
@@ -287,16 +291,16 @@ tint cache and reloads folder icons immediately.
 
 ## Theming
 
-Nook looks for a palette in this order:
+NIRX looks for a palette in this order:
 
 1. `~/.cache/DankMaterialShell/dms-colors.json` — the full Material 3 token set
    (`mode`, `colors.dark` / `colors.light`), preferred.
 2. `~/.config/gtk-4.0/dank-colors.css` — the `@define-color` subset DMS writes
    for GTK apps.
-3. A built-in dark palette, so Nook always renders correctly.
+3. A built-in dark palette, so NIRX always renders correctly.
 
 The cache file and the GTK colour file are watched with GIO monitors; when
-Matugen regenerates them (wallpaper change, theme switch) Nook re-reads the
+Matugen regenerates them (wallpaper change, theme switch) NIRX re-reads the
 palette and replaces its CSS provider, debounced to avoid flicker. `mode:
 "light"` switches the whole UI to the light token set.
 
@@ -404,15 +408,15 @@ this machine keep `.cargo/config.toml`/`.sysroot` in place and rebuild.
 
 **Window opens but looks unstyled / monochrome** — the DMS cache file may not
 exist yet. Run Matugen once (`matugen image <wallpaper>`) or set a wallpaper in
-DMS; Nook falls back to its built-in palette until then.
+DMS; NIRX falls back to its built-in palette until then.
 
 **Theme does not change when the wallpaper changes** — verify that
 `~/.cache/DankMaterialShell/dms-colors.json` is actually rewritten (watch it with
-`inotifywait`). Nook watches the cache directory, so a palette written by a
+`inotifywait`). NIRX watches the cache directory, so a palette written by a
 process on a different mount namespace or a bind-mounted file may not generate
-events; restart Nook in that case.
+events; restart NIRX in that case.
 
-**"Open terminal here" does nothing** — Nook uses the first existing terminal
+**"Open terminal here" does nothing** — NIRX uses the first existing terminal
 from `terminal` in `config.json` (`kitty` by default), then common fallbacks,
 then `xterm`. Install `kitty` or set `"terminal": ["/usr/bin/your-terminal"]`.
 
@@ -420,16 +424,16 @@ then `xterm`. Install `kitty` or set `"terminal": ["/usr/bin/your-terminal"]`.
 `ffmpeg`. Previews fall back to metadata when the tool is missing.
 
 **`GtkGizmo ... (slider) reported min width -2`** — a benign GTK 4.18 warning
-emitted while measuring scrollbars, reproducible without Nook's stylesheet. It
+emitted while measuring scrollbars, reproducible without NIRX's stylesheet. It
 does not affect behavior.
 
 **"No application registered for …"** — the MIME type has no handler. Use
 _Open with…_ and pick an application; choose "Set as default" if you want that
 choice applied system-wide for your user.
 
-**Nook is not using Colloid** — verify that a folder containing `index.theme`
+**NIRX is not using Colloid** — verify that a folder containing `index.theme`
 exists under `~/.local/share/icons/Colloid*`, `~/.icons/Colloid*` or
-`/usr/share/icons/Colloid*`. Nook only looks for an installed theme; it never
+`/usr/share/icons/Colloid*`. NIRX only looks for an installed theme; it never
 downloads one. _Tools → Icon Theme…_ shows what it found and lets you pick it
 explicitly, or set `"icon_theme"` in the config.
 
@@ -492,10 +496,10 @@ sources but not machine-driven here.
 
 Limitations: LocalSend text/clipboard messages and the browser-download mode
 are not implemented, and a transfer is only offered to you while the other
-device is running its LocalSend app (or Nook). There is no undo stack beyond the
+device is running its LocalSend app (or NIRX). There is no undo stack beyond the
 trash, archive operations cannot be cancelled once started, and trashing requires a freedesktop-compatible trash
 directory (the usual `~/.local/share/Trash`) — on volumes without one, deletion
 is reported as an error rather than silently falling back to permanent delete.
 The recursive view loads one level per expand and caps indentation depth; a
 folder that cannot be read simply expands to nothing. Network browsing hands
-non-local URIs to the desktop (gvfs), since Nook's panes browse local folders.
+non-local URIs to the desktop (gvfs), since NIRX's panes browse local folders.

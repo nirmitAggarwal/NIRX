@@ -1,11 +1,11 @@
 # LocalSend
 
-Nook implements the LocalSend protocol itself. There is no LocalSend window, no
+NIRX implements the LocalSend protocol itself. There is no LocalSend window, no
 LocalSend installation on the sending machine, no daemon and no shell command:
-the protocol runs inside Nook, on Nook's own threads, with Nook's own dialogs.
+the protocol runs inside NIRX, on NIRX's own threads, with NIRX's own dialogs.
 
 ```text
-        Nook (sender)                          phone / PC (LocalSend or Nook)
+        NIRX (sender)                          phone / PC (LocalSend or NIRX)
    ┌──────────────────────┐                ┌──────────────────────────────┐
    │ 1 announce on        │  UDP 53317     │                              │
    │   224.0.0.167:53317  ├───────────────►│  "who is there?"             │
@@ -36,14 +36,14 @@ the protocol runs inside Nook, on Nook's own threads, with Nook's own dialogs.
 | PIN-protected receivers | yes, the picker has a PIN field |
 | SHA-256 verification | yes, sent when the file is under 512 MiB and always verified when the sender provides one |
 | Cancel a session | yes, `/cancel` is sent when you cancel |
-| Text / clipboard messages | no (LocalSend sends those as files; Nook does not implement the text message UI) |
+| Text / clipboard messages | no (LocalSend sends those as files; NIRX does not implement the text message UI) |
 | Reverse transfer (browser download) | no |
 
 ## Sending
 
 1. Select files and/or folders in a tab.
 2. `Ctrl+Shift+S`, the toolbar send button, or *Share → Send to Device…*.
-3. The picker opens and announces Nook on the network; devices that answer (or
+3. The picker opens and announces NIRX on the network; devices that answer (or
    that are already known) appear as you type or after a moment.
    - Type to filter, `↑`/`↓` to move, `Enter` to send, `Ctrl+R` to rescan.
    - **Add by address** reaches a device that multicast cannot: `192.168.1.20`
@@ -59,8 +59,8 @@ Folders are walked recursively and sent with their relative paths
 
 ## Receiving
 
-Any device that finds Nook can send to it. With `transfer_enabled` on (the
-default) Nook answers `/register`, `/prepare-upload`, `/upload` and `/cancel`
+Any device that finds NIRX can send to it. With `transfer_enabled` on (the
+default) NIRX answers `/register`, `/prepare-upload`, `/upload` and `/cancel`
 itself.
 
 - Without auto-accept, a window shows the sender, device type, address,
@@ -74,7 +74,7 @@ itself.
 - Accepted files are written into the receive folder (default `~/Downloads`),
   keeping the sender's subfolders. Nothing is ever overwritten: an existing name
   gets `(2)`, `(3)`, … .
-- When every file of a session has arrived, Nook refreshes the panes and shows
+- When every file of a session has arrived, NIRX refreshes the panes and shows
   how many items were received.
 
 Incoming names are sanitised: absolute paths, `..` components and separators
@@ -88,7 +88,7 @@ Transfers…* or `F10` → Share, and also from the menu bar:
 
 | Setting | Meaning |
 | --- | --- |
-| Receive transfers | Whether Nook participates in discovery and receiving at all |
+| Receive transfers | Whether NIRX participates in discovery and receiving at all |
 | Device name | The alias other devices see (defaults to the hostname) |
 | Port | 53317 by default; changing it restarts the service |
 | Save incoming files to | Receive folder (`~/Downloads` by default) |
@@ -98,13 +98,13 @@ Transfers…* or `F10` → Share, and also from the menu bar:
 The dialog also shows this device's alias, port and certificate fingerprint.
 
 The port is announced per device, so if something else already holds 53317 (the
-LocalSend desktop app, for example), Nook picks a free port and announces that
+LocalSend desktop app, for example), NIRX picks a free port and announces that
 one instead — LocalSend still finds it.
 
 ## Security
 
-- **Transport**: HTTPS with a self-signed certificate generated when Nook
-  starts. LocalSend has no certificate authority on a home network, so Nook
+- **Transport**: HTTPS with a self-signed certificate generated when NIRX
+  starts. LocalSend has no certificate authority on a home network, so NIRX
   accepts self-signed certificates and identifies peers by fingerprint instead:
   every device announces the SHA-256 of its certificate, and the fingerprint is
   compared with the certificate actually presented. A mismatch is reported as a
@@ -113,7 +113,7 @@ one instead — LocalSend still finds it.
 - **Mutual TLS**: the same certificate is presented as the *client* certificate
   on every outgoing connection. LocalSend receivers (1.18 and newer) demand a
   client certificate and abort the handshake with `certificate_required` — the
-  `certificateRequired` error — when a sender shows none, so Nook always
+  `certificateRequired` error — when a sender shows none, so NIRX always
   presents its identity before the first HTTP byte is written. The certificate
   announced, the certificate served and the certificate presented are the same
   key pair, which is what makes the fingerprint comparison above meaningful.
@@ -123,7 +123,7 @@ one instead — LocalSend still finds it.
 - **Confirmations**: without auto-accept, nothing is written until you press
   Accept. The sender is shown with its alias, type and address.
 - **Nothing runs in the background**: the sockets are opened by the window and
-  closed when Nook exits.
+  closed when NIRX exits.
 
 ## Ports and firewall
 
@@ -137,7 +137,7 @@ one instead — LocalSend still finds it.
 If nobody shows up in the picker: allow TCP **and** UDP 53317 in the firewall,
 keep both devices on the same subnet (guest networks and AP isolation block
 multicast), and use *Add by address* when multicast is blocked. Devices only
-announce while their LocalSend app (or Nook) is running.
+announce while their LocalSend app (or NIRX) is running.
 
 ## Troubleshooting
 

@@ -9,9 +9,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-pub const APP_DIR_NAME: &str = "nook";
+pub const APP_DIR_NAME: &str = "nirx";
 
-/// `$XDG_CONFIG_HOME/nook`, falling back to `~/.config/nook`.
+/// `$XDG_CONFIG_HOME/nirx`, falling back to `~/.config/nirx`.
 pub fn config_dir() -> PathBuf {
     if let Some(dir) = std::env::var_os("XDG_CONFIG_HOME") {
         let p = PathBuf::from(dir);
@@ -22,7 +22,7 @@ pub fn config_dir() -> PathBuf {
     home_dir().join(".config").join(APP_DIR_NAME)
 }
 
-/// `$XDG_CACHE_HOME/nook`, falling back to `~/.cache/nook`.
+/// `$XDG_CACHE_HOME/nirx`, falling back to `~/.cache/nirx`.
 pub fn cache_dir() -> PathBuf {
     if let Some(dir) = std::env::var_os("XDG_CACHE_HOME") {
         let p = PathBuf::from(dir);
@@ -41,6 +41,21 @@ pub fn home_dir() -> PathBuf {
 
 pub fn config_path() -> PathBuf {
     config_dir().join("config.json")
+}
+
+/// Previous Nook configuration location, read only as a compatibility fallback.
+fn legacy_config_path() -> PathBuf {
+    let dir = if let Some(dir) = std::env::var_os("XDG_CONFIG_HOME") {
+        let path = PathBuf::from(dir);
+        if path.is_absolute() {
+            path
+        } else {
+            home_dir().join(".config")
+        }
+    } else {
+        home_dir().join(".config")
+    };
+    dir.join("nook").join("config.json")
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
@@ -67,7 +82,6 @@ impl ViewMode {
             ViewMode::Recursive => ViewMode::Grid,
         }
     }
-
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
@@ -176,7 +190,7 @@ pub struct Config {
     pub follow_theme_mode: bool,
     #[serde(default)]
     pub preview_max_bytes: u64,
-    /// Icon theme used by Nook only. Empty/absent means auto-detect: Colloid
+    /// Icon theme used by NIRX only. Empty/absent means auto-detect: Colloid
     /// when installed, otherwise the desktop's theme.
     #[serde(default)]
     pub icon_theme: Option<String>,
@@ -303,15 +317,31 @@ impl Default for Config {
 impl Config {
     pub fn load() -> Self {
         let path = config_path();
-        match std::fs::read_to_string(&path) {
+        // Keep existing Nook settings readable after the brand change. The old
+        // file is deliberately left untouched; the next normal save writes the
+        // current configuration under the NIRX directory.
+        let legacy_path = legacy_config_path();
+        let source = if path.exists() {
+            path.clone()
+        } else if legacy_path.exists() {
+            legacy_path
+        } else {
+            path.clone()
+        };
+        match std::fs::read_to_string(&source) {
             Ok(text) => match serde_json::from_str::<Config>(&text) {
                 Ok(cfg) => cfg,
                 Err(err) => {
                     eprintln!(
-                        "nook: config {} is invalid ({err}); using defaults",
-                        path.display()
+                        "nirx: config {} is invalid ({err}); using defaults",
+                        source.display()
                     );
-                    let _ = std::fs::rename(&path, path.with_extension("json.broken"));
+                    // A bad NIRX file can be quarantined, but preserve the
+                    // legacy file in place: it may belong to an older install.
+                    if source == path {
+                        let broken_path = source.with_extension("json.broken");
+                        let _ = std::fs::rename(&source, broken_path);
+                    }
                     Config::default()
                 }
             },
@@ -332,7 +362,7 @@ impl Config {
                     let _ = std::fs::rename(&tmp, &path);
                 }
             }
-            Err(err) => eprintln!("nook: could not serialise config: {err}"),
+            Err(err) => eprintln!("nirx: could not serialise config: {err}"),
         }
     }
 

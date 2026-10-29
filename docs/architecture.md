@@ -202,11 +202,11 @@ Rules that keep this safe:
 ## Styling
 
 `theme.rs` builds the whole stylesheet from the palette and installs it as a
-single `gtk::CssProvider`. Classes are prefixed `nook-`: `nook-surface` for the
-working area, `nook-toolbar`, `nook-crumb`, `nook-tab`, `nook-library`,
-`nook-library-actions` for the library action bar, `nook-dialog`, `nook-meta`,
-`nook-btn`, `nook-action`, `nook-suggested`, `nook-destructive`,
-`nook-empty-title`, and so on. `ThemeWatcher` re-applies the stylesheet when the
+single `gtk::CssProvider`. Classes are prefixed `nirx-`: `nirx-surface` for the
+working area, `nirx-toolbar`, `nirx-crumb`, `nirx-tab`, `nirx-library`,
+`nirx-library-actions` for the library action bar, `nirx-dialog`, `nirx-meta`,
+`nirx-btn`, `nirx-action`, `nirx-suggested`, `nirx-destructive`,
+`nirx-empty-title`, and so on. `ThemeWatcher` re-applies the stylesheet when the
 palette files change (the provider is replaced, not stacked).
 
 ## Tests

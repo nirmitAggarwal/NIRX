@@ -1,4 +1,4 @@
-//! Nook — a native GTK4 file manager for Hyprland / DankMaterialShell.
+//! NIRX — a developer-focused GTK4 file manager for Linux.
 
 mod apps;
 mod fsutil;
@@ -36,10 +36,10 @@ fn cli_directory() -> Option<std::path::PathBuf> {
 }
 
 fn main() -> glib::ExitCode {
-    glib::set_prgname(Some("nook"));
+    glib::set_prgname(Some("nirx"));
 
     let app = gtk::Application::builder()
-        .application_id("dev.nook.Files")
+        .application_id("dev.nirx.Files")
         .flags(gio::ApplicationFlags::HANDLES_OPEN)
         .build();
 

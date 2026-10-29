@@ -158,7 +158,7 @@ fn hostname() -> String {
         .map(|s| s.trim().to_string())
         .ok()
         .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "Nook".to_string())
+        .unwrap_or_else(|| "NIRX".to_string())
 }
 
 fn hex(bytes: &[u8]) -> String {
@@ -266,7 +266,7 @@ impl Inner {
         Device {
             alias: self.alias.clone(),
             version: PROTOCOL_VERSION.to_string(),
-            device_model: Some("Nook".to_string()),
+            device_model: Some("NIRX".to_string()),
             device_type: Some("desktop".to_string()),
             fingerprint: self.fingerprint.clone(),
             port: self.port,

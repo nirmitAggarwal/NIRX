@@ -1,9 +1,9 @@
 [package]
-name = "nook"
+name = "nirx"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.85"
-description = "A native GTK4 file manager for Hyprland / DankMaterialShell"
+description = "A developer-focused GTK4 file manager for Linux"
 license = "MIT"
 
 [dependencies]

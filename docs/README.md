@@ -1,6 +1,6 @@
-# Nook documentation
+# NIRX documentation
 
-Nook is a GTK4 file manager for Linux (Hyprland / DankMaterialShell especially),
+NIRX is a GTK4 file manager for Linux (Hyprland / DankMaterialShell especially),
 written in Rust. These documents describe what it does, how to drive it without
 a mouse, how the code is laid out, and how the LocalSend integration works.
 
@@ -51,8 +51,8 @@ cargo run --release            # opens your home directory
 cargo run --release -- ~/Work  # opens a specific folder
 ```
 
-Everything is persisted in `~/.config/nook/config.json`; nothing outside that
-file, `~/.cache/nook` and the folders you touch is modified.
+Everything is persisted in `~/.config/nirx/config.json`; nothing outside that
+file, `~/.cache/nirx` and the folders you touch is modified.
 
 ## Where to look in the source
 

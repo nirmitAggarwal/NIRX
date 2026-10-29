@@ -99,10 +99,6 @@ pub struct Pane {
     pub list_sel: gtk::MultiSelection,
     pub grid_sel: gtk::MultiSelection,
     pub stack: gtk::Stack,
-    /// One scroller per view: the scrollable widget has to be the scroller's
-    /// direct child (see `Pane::new`).
-    list_scroller: gtk::ScrolledWindow,
-    grid_scroller: gtk::ScrolledWindow,
     /// Direct children of the current folder. The recursive view flattens this
     /// list lazily using `expanded` and `children`.
     base: RefCell<Vec<FileEntry>>,
@@ -186,8 +182,11 @@ impl Pane {
                 .unwrap_or(true)
         });
         let filter = gtk::FilterListModel::new(Some(store.clone()), Some(filter_obj.clone()));
+        // Both visual representations share one selection object over the
+        // filtered model. This keeps focus-independent selection, bulk actions,
+        // and selection restoration consistent when switching layouts.
         let list_sel = gtk::MultiSelection::new(Some(filter.clone()));
-        let grid_sel = gtk::MultiSelection::new(Some(filter.clone()));
+        let grid_sel = list_sel.clone();
 
         let context: Rc<RefCell<Option<Rc<dyn Fn(&FileEntry, f64, f64)>>>> =
             Rc::new(RefCell::new(None));
@@ -196,8 +195,7 @@ impl Pane {
         // expander arrows can read and toggle it.
         let expanded: Rc<RefCell<HashSet<PathBuf>>> = Rc::new(RefCell::new(HashSet::new()));
         let recursive = Rc::new(Cell::new(view == ViewMode::Recursive));
-        let expand_cb: Rc<RefCell<Option<Rc<dyn Fn(PathBuf, bool)>>>> =
-            Rc::new(RefCell::new(None));
+        let expand_cb: Rc<RefCell<Option<Rc<dyn Fn(PathBuf, bool)>>>> = Rc::new(RefCell::new(None));
         let (expand_sender, expand_rx) = async_channel::unbounded::<ExpandResult>();
         let (thumb_done, thumb_rx) = async_channel::unbounded::<ThumbResult>();
         let thumbs = ThumbHandle {
@@ -300,8 +298,8 @@ impl Pane {
                 };
                 let mut origin = (0.0f64, 0.0f64);
                 if let (Some(area), Some(stack)) = (area_weak.upgrade(), stack_weak.upgrade()) {
-                    if let Some(point) = stack
-                        .compute_point(&area, &gtk::graphene::Point::new(0.0, 0.0))
+                    if let Some(point) =
+                        stack.compute_point(&area, &gtk::graphene::Point::new(0.0, 0.0))
                     {
                         origin = (f64::from(point.x()), f64::from(point.y()));
                     }
@@ -341,8 +339,6 @@ impl Pane {
             list_sel,
             grid_sel,
             stack,
-            list_scroller,
-            grid_scroller,
             base: RefCell::new(Vec::new()),
             expanded,
             children: RefCell::new(HashMap::new()),
@@ -550,7 +546,9 @@ impl Pane {
 
     /// Wire double-click / Enter activation for both views.
     pub fn wire_activation(self: &Rc<Self>) {
-        let list = self.view_widget("list").and_then(|w| w.downcast::<gtk::ColumnView>().ok());
+        let list = self
+            .view_widget("list")
+            .and_then(|w| w.downcast::<gtk::ColumnView>().ok());
         if let Some(list) = list {
             let weak = Rc::downgrade(self);
             list.connect_activate(move |_, pos| {
@@ -559,7 +557,9 @@ impl Pane {
                 }
             });
         }
-        let grid = self.view_widget("grid").and_then(|w| w.downcast::<gtk::GridView>().ok());
+        let grid = self
+            .view_widget("grid")
+            .and_then(|w| w.downcast::<gtk::GridView>().ok());
         if let Some(grid) = grid {
             let weak = Rc::downgrade(self);
             grid.connect_activate(move |_, pos| {
@@ -569,18 +569,14 @@ impl Pane {
             });
         }
 
-        // Selection changes refresh the breadcrumb/status/preview.
-        for sel in [self.list_sel.clone(), self.grid_sel.clone()] {
-            let weak = Rc::downgrade(self);
-            sel.connect_selection_changed(move |_, _, _| {
-                if let Some(pane) = weak.upgrade() {
-                    let active = pane.active_selection();
-                    if active == &pane.list_sel || active == &pane.grid_sel {
-                        pane.notify();
-                    }
-                }
-            });
-        }
+        // The list and grid deliberately share a selection model, so one
+        // observer keeps selection-dependent chrome in sync in either view.
+        let weak = Rc::downgrade(self);
+        self.list_sel.connect_selection_changed(move |_, _, _| {
+            if let Some(pane) = weak.upgrade() {
+                pane.notify();
+            }
+        });
     }
 
     fn open_position(self: &Rc<Self>, pos: u32) {
@@ -791,6 +787,9 @@ impl Pane {
     /// Replace the model with `entries`, which are the direct children of the
     /// current folder. The recursive view then adds only the expanded subtrees.
     pub fn set_entries(&self, entries: Vec<FileEntry>) {
+        // Replace the underlying model without allowing stale positions to
+        // survive a navigation, filter refresh, or directory replacement.
+        self.list_sel.unselect_all();
         *self.base.borrow_mut() = entries;
         self.children.borrow_mut().clear();
         self.expanded.borrow_mut().clear();
@@ -877,10 +876,7 @@ impl Pane {
     fn finish_expand(&self, result: ExpandResult) {
         if let Some(error) = result.error {
             // Do not pretend the folder is open when it could not be read.
-            self.notice(&format!(
-                "Cannot open {}: {error}",
-                result.dir.display()
-            ));
+            self.notice(&format!("Cannot open {}: {error}", result.dir.display()));
             return;
         }
         self.children
@@ -901,12 +897,8 @@ impl Pane {
         // Tiles outside the viewport keep a placeholder box; skip them so a
         // band can only ever select what is actually on screen.
         rects.retain(|(_, r)| r.width() >= 40.0 && r.height() >= 40.0);
-        let hit = gtk::graphene::Rect::new(
-            rect.0 as f32,
-            rect.1 as f32,
-            rect.2 as f32,
-            rect.3 as f32,
-        );
+        let hit =
+            gtk::graphene::Rect::new(rect.0 as f32, rect.1 as f32, rect.2 as f32, rect.3 as f32);
         let mut inside: HashSet<u32> = HashSet::new();
         for (pos, bounds) in rects {
             if bounds.intersection(&hit).is_some() {
@@ -967,17 +959,13 @@ impl Pane {
                 let empty = is_empty_space(&pane.stack, x, y);
                 *press.borrow_mut() = Some((x, y, empty));
                 if !empty {
-                    // Item presses belong to the row itself, whose own gesture
-                    // does single/Ctrl/Shift selection. Keeping this capture
-                    // gesture out of the way is what lets those modifiers work
-                    // and lets a drag become a file move instead of a rubber
-                    // band. Denying releases the sequence before we claim it.
+                    // Item presses belong to GTK's list/grid selection model.
+                    // This capture gesture must not claim their event sequence.
                     gesture.set_state(gtk::EventSequenceState::Denied);
                     return;
                 }
-                if !additive {
-                    pane.active_selection().unselect_all();
-                }
+                // Do not clear selection on press: an empty click only clears
+                // on release, while a drag preserves its base selection.
                 let mut rubber = pane.rubber.borrow_mut();
                 rubber.additive = additive;
             });
@@ -1017,12 +1005,20 @@ impl Pane {
                 if !empty {
                     return;
                 }
+                // Remember that this sequence became a rubber-band drag so
+                // its eventual click release cannot be mistaken for a click.
+                *press.borrow_mut() = Some((px, py, false));
                 let _ = (x, y);
                 let mut rubber = pane.rubber.borrow_mut();
+                if !rubber.additive {
+                    pane.select_none();
+                }
                 rubber.active = true;
                 rubber.selected.clear();
                 let start = gesture.start_point().unwrap_or((px, py));
-                pane.rubber_rect.borrow_mut().replace((start.0, start.1, 0.0, 0.0));
+                pane.rubber_rect
+                    .borrow_mut()
+                    .replace((start.0, start.1, 0.0, 0.0));
             });
         }
         {
@@ -1054,23 +1050,65 @@ impl Pane {
         }
         {
             let weak = Rc::downgrade(self);
+            let press = press.clone();
             drag.connect_drag_end(move |_, _, _| {
                 if let Some(pane) = weak.upgrade() {
                     pane.end_rubber_selection();
                 }
+                *press.borrow_mut() = None;
             });
         }
         {
             let weak = Rc::downgrade(self);
+            let press = press.clone();
             drag.connect_cancel(move |_, _| {
                 if let Some(pane) = weak.upgrade() {
                     pane.end_rubber_selection();
+                }
+                *press.borrow_mut() = None;
+            });
+        }
+        {
+            let weak = Rc::downgrade(self);
+            let press = press.clone();
+            click.connect_released(move |gesture, _, x, y| {
+                let start = press.borrow_mut().take();
+                let Some(pane) = weak.upgrade() else { return };
+                let Some((start_x, start_y, was_empty)) = start else {
+                    return;
+                };
+                if !was_empty
+                    || gesture.current_event_state().intersects(
+                        gtk::gdk::ModifierType::CONTROL_MASK | gtk::gdk::ModifierType::SHIFT_MASK,
+                    )
+                {
+                    return;
+                }
+                // A click with no movement clears; the paired drag gesture
+                // handles movement, preserving the old selection as a base.
+                let moved = (x - start_x).abs() > 3.0 || (y - start_y).abs() > 3.0;
+                if !moved && is_empty_space(&pane.stack, x, y) {
+                    pane.select_none();
                 }
             });
         }
 
         self.stack.add_controller(click);
         self.stack.add_controller(drag);
+    }
+
+    fn restore_paths(&self, paths: Vec<PathBuf>) {
+        if paths.is_empty() {
+            return;
+        }
+        let wanted: HashSet<PathBuf> = paths.into_iter().collect();
+        let model = self.active_model();
+        let sel = self.active_selection();
+        for pos in 0..model.n_items() {
+            if entry_at(&model, pos).is_some_and(|entry| wanted.contains(&entry.path)) {
+                sel.select_item(pos, false);
+            }
+        }
     }
 
     /// Reapply the selection captured before a background refresh.
@@ -1083,19 +1121,7 @@ impl Pane {
             }
         };
         let Some(paths) = take else { return };
-        if paths.is_empty() {
-            return;
-        }
-        let sel = self.active_selection();
-        let model = self.active_model();
-        let wanted: HashSet<PathBuf> = paths.into_iter().collect();
-        for pos in 0..model.n_items() {
-            if let Some(entry) = entry_at(&model, pos) {
-                if wanted.contains(&entry.path) {
-                    sel.select_item(pos, false);
-                }
-            }
-        }
+        self.restore_paths(paths);
     }
 
     fn apply_load(self: &Rc<Self>, result: LoadResult) {
@@ -1115,7 +1141,9 @@ impl Pane {
                 let was_expanded: Vec<PathBuf> = self.expanded.borrow().iter().cloned().collect();
                 self.set_entries(entries);
                 if self.recursive.get() && !was_expanded.is_empty() {
-                    self.expanded.borrow_mut().extend(was_expanded.iter().cloned());
+                    self.expanded
+                        .borrow_mut()
+                        .extend(was_expanded.iter().cloned());
                     for dir in was_expanded {
                         if dir.is_dir() {
                             self.toggle_expand(dir, true);
@@ -1268,6 +1296,7 @@ impl Pane {
         self.history_pos.set(pos - 1);
         let target = self.history.borrow()[pos - 1].clone();
         *self.path.borrow_mut() = target;
+        *self.restore.borrow_mut() = None;
         self.set_entries(Vec::new());
         Pane::reload(self);
         self.notify();
@@ -1282,6 +1311,7 @@ impl Pane {
         self.history_pos.set(pos + 1);
         let target = self.history.borrow()[pos + 1].clone();
         *self.path.borrow_mut() = target;
+        *self.restore.borrow_mut() = None;
         self.set_entries(Vec::new());
         Pane::reload(self);
         self.notify();
@@ -1343,12 +1373,12 @@ impl Pane {
         self.refreshing.set(true);
         // Remember which paths were selected; they are reselected when the new
         // listing arrives instead of waiting for an arbitrary timeout.
-        let selected: Vec<PathBuf> = self
-            .selected_entries()
-            .iter()
-            .map(|e| e.path.clone())
-            .collect();
         let path = self.path();
+        let selected = self
+            .selected_entries()
+            .into_iter()
+            .map(|entry| entry.path)
+            .collect();
         *self.restore.borrow_mut() = Some((path.clone(), selected));
         let sender = self.sender.clone();
         let show_hidden = self.show_hidden.get();
@@ -1543,10 +1573,7 @@ fn add_drop_target(
 
 /// Local paths carried by a `text/uri-list` drop.
 fn file_list_paths(list: &gtk::gdk::FileList) -> Vec<PathBuf> {
-    list.files()
-        .iter()
-        .filter_map(|file| file.path())
-        .collect()
+    list.files().iter().filter_map(|file| file.path()).collect()
 }
 
 /// Replace the generic file icon with a preview thumbnail when the category is
@@ -1730,11 +1757,7 @@ fn build_list_view(
         child = child.and_then(|c| c.next_sibling());
         if let Some(label) = child.clone().and_downcast::<gtk::Label>() {
             // Files have no expander, so they carry the tree indent themselves.
-            label.set_margin_start(if tree && !entry.is_dir {
-                indent
-            } else {
-                0
-            });
+            label.set_margin_start(if tree && !entry.is_dir { indent } else { 0 });
             label.set_text(&entry.name);
             label.remove_css_class("nook-hidden");
             if entry.is_hidden {
@@ -2033,8 +2056,8 @@ mod tree_tests {
     use super::*;
 
     fn entry(path: &str, is_dir: bool, depth: u8) -> FileEntry {
-        let mut entry = FileEntry::from_path(std::path::Path::new(path), None)
-            .unwrap_or_else(|| FileEntry {
+        let mut entry =
+            FileEntry::from_path(std::path::Path::new(path), None).unwrap_or_else(|| FileEntry {
                 path: PathBuf::from(path),
                 name: path.to_string(),
                 is_dir,

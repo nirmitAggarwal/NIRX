@@ -1,6 +1,6 @@
 # Keyboard
 
-Nook is designed to be used without a mouse. This page lists every default
+NIRX is designed to be used without a mouse. This page lists every default
 shortcut and then walks through complete keyboard-only workflows.
 
 ## Contents

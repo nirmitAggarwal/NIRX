@@ -1,22 +1,25 @@
 # Configuration
 
-All of Nook's settings live in one JSON document. Writes are atomic (a temporary
-file is renamed into place), so an interrupted save never leaves a half-written
-configuration. If the file is invalid, Nook renames it to `config.json.broken`,
-prints the parse error and starts from the defaults instead of failing.
+NIRX stores settings in one JSON document. Writes are atomic (a temporary file
+is renamed into place), so an interrupted save never leaves a half-written
+configuration. If a config is invalid, NIRX preserves it as `config.json.broken`,
+prints the parse error and starts from defaults. Existing Nook configuration is
+read as a compatibility fallback only when no NIRX config exists; the legacy
+file is not moved or deleted, and subsequent saves go to the NIRX path.
 
 ## Locations
 
 | Path | Contents |
 | --- | --- |
-| `$XDG_CONFIG_HOME/nook/config.json` (default `~/.config/nook/config.json`) | Everything in this document |
-| `$XDG_CACHE_HOME/nook` (default `~/.cache/nook`) | Preview and thumbnail cache |
+| `$XDG_CONFIG_HOME/nirx/config.json` (default `~/.config/nirx/config.json`) | Everything in this document |
+| `$XDG_CACHE_HOME/nirx` (default `~/.cache/nirx`) | Preview and thumbnail cache |
+| Legacy `$XDG_CONFIG_HOME/nook/config.json` (default `~/.config/nook/config.json`) | Read-only config fallback until an NIRX config is created |
 | `<folder>/fm_run_task.json` | Per-folder Run commands ([run commands](#run-commands)) |
-| `~/.local/share/Trash` | The freedesktop trash Nook reads and writes |
+| `~/.local/share/Trash` | The freedesktop trash NIRX reads and writes |
 
 `$XDG_CONFIG_HOME` and `$XDG_CACHE_HOME` are honoured when they are absolute
 paths; otherwise the `~/.config` and `~/.cache` defaults are used. `HOME`
-decides what `~` means, both for Nook and for paths stored in the config.
+decides what `~` means, both for NIRX and for paths stored in the config.
 
 ## The file
 
@@ -92,7 +95,7 @@ folder they hold: library views are transient states, not part of the session.
 | `show_preview` | `false` | Preview pane open |
 | `confirm_delete` | `true` | Ask before moving to the trash |
 | `recent_destinations` | `[]` | Quick Shift history, most recent first (max 10) |
-| `recent_files` | `[]` | Files opened from Nook (max 25) |
+| `recent_files` | `[]` | Files opened from NIRX (max 25) |
 | `bookmarks` | `[]` | `{ "name": …, "path": … }` entries in the sidebar |
 
 ### Appearance
@@ -100,7 +103,7 @@ folder they hold: library views are transient states, not part of the session.
 | Key | Type / default | Meaning |
 | --- | --- | --- |
 | `follow_theme_mode` | `true` | Take the dark/light mode from the DMS palette |
-| `icon_theme` | `null` | Icon theme used by Nook only; `null` = auto (Colloid if installed) |
+| `icon_theme` | `null` | Icon theme used by NIRX only; `null` = auto (Colloid if installed) |
 | `folder_color` | Colloid blue | Colour for folder icons without an override |
 | `folder_colors` | `{}` | Per-folder colours, keyed by absolute path |
 | `folder_color_inherit` | `true` | Uncoloured folders inherit the nearest coloured ancestor |
@@ -115,7 +118,7 @@ folder they hold: library views are transient states, not part of the session.
 | --- | --- | --- |
 | `terminal` | `["kitty"]` | Candidate terminals, tried in order |
 | `editor` | `"zed"` | Editor opened by *Open Folder in Zed* |
-| `app_overrides` | `{}` | `"<mime>"` or `".<extension>"` → desktop file id; Nook-local default apps |
+| `app_overrides` | `{}` | `"<mime>"` or `".<extension>"` → desktop file id; NIRX-local default apps |
 | `custom_openers` | `{}` | `"<path>"`, `".<ext>"` or `"<mime>"` → shell command (`%f`/`{}` expand to the files) |
 | `shortcuts` | `{}` | Action name → accelerator override (see below) |
 
@@ -192,11 +195,12 @@ Rules:
 | `XDG_CURRENT_DESKTOP` | Honoured by GIO when resolving default applications |
 | `WAYLAND_DISPLAY`, `DISPLAY` | GTK picks the session automatically |
 
-Nook has no other environment variables of its own.
+NIRX has no other environment variables of its own.
 
 ## Resetting
 
 - Delete `config.json` to start from defaults (tabs, bookmarks, colours and
   shortcuts are lost).
-- Delete `~/.cache/nook` to rebuild every cached preview and thumbnail.
+- Delete `~/.cache/nirx` to rebuild every cached preview and thumbnail.
+- The old Nook configuration is not deleted by NIRX; remove it manually only if you no longer need to roll back.
 - Remove `fm_run_task.json` files to drop Run commands for those trees.

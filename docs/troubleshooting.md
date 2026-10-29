@@ -2,17 +2,17 @@
 
 ## The window looks wrong or the theme does not follow the wallpaper
 
-- Nook reads the palette Matugen / DankMaterialShell generate
+- NIRX reads the palette Matugen / DankMaterialShell generate
   (`~/.cache/DankMaterialShell/` and the DMS GTK colour file). If neither exists
   it falls back to its built-in dark palette; that fallback is not a bug.
-- The palette is watched, so a wallpaper change should re-theme Nook while it
+- The palette is watched, so a wallpaper change should re-theme NIRX while it
   runs. If it does not, check that the palette files are actually being
   rewritten by DMS.
-- Only Nook is themed. The rest of the desktop is untouched by design.
+- Only NIRX is themed. The rest of the desktop is untouched by design.
 
 ## An icon is missing (a blank square)
 
-Nook uses the icon theme's symbolic icons. If a theme lacks one (for example
+NIRX uses the icon theme's symbolic icons. If a theme lacks one (for example
 `user-desktop-symbolic`), that row shows a blank or fallback icon. Switching
 *Settings → Appearance → Icon Theme…* to Automatic (Colloid when installed) or
 to Adwaita fixes it.
@@ -37,14 +37,14 @@ than clipping.
 
 ## "Open terminal here" does nothing
 
-Nook tries the terminals in `terminal` in the config, in order: `kitty`, `foot`,
+NIRX tries the terminals in `terminal` in the config, in order: `kitty`, `foot`,
 `alacritty`, `wezterm`, `ghostty`, `konsole`, `ptyxis` by default. Install one of
 them, or put your terminal's command first in `config.json`.
 
 ## A file does not open with the application I expect
 
 System defaults come from GIO. *Settings → Behaviour → Default Applications &
-Commands…* sets a Nook-local override (`app_overrides` in the config) without
+Commands…* sets a NIRX-local override (`app_overrides` in the config) without
 touching system configuration. *Open With…* → "always" does the same for one
 file type.
 
@@ -54,11 +54,11 @@ file type.
   `pdftoppm` (poppler-utils).
 - Categories can be switched off in *Settings → Appearance → Preview Icons…*.
 - Files larger than `preview_max_bytes` (8 MiB) are not previewed.
-- The cache may be stale: delete `~/.cache/nook`.
+- The cache may be stale: delete `~/.cache/nirx`.
 
 ## "Cannot open …: Permission denied"
 
-Nook reports the failing path and the OS error per item. It never silently skips
+NIRX reports the failing path and the OS error per item. It never silently skips
 files; the summary line says how many succeeded and how many failed.
 
 ## Deleting went to the trash instead of removing the file
@@ -70,7 +70,7 @@ option.
 
 ## Trash is empty although files were deleted
 
-Nook reads the freedesktop trash under `$XDG_DATA_HOME/Trash` (usually
+NIRX reads the freedesktop trash under `$XDG_DATA_HOME/Trash` (usually
 `~/.local/share/Trash`). Files deleted on other mounts have their own trash
 directory, and files deleted from another desktop may live in a different
 `XDG_DATA_HOME` if that variable is set differently.
@@ -102,7 +102,7 @@ covered there. Two common ones:
 
 ## The configuration is broken
 
-Nook renames an unparsable `config.json` to `config.json.broken`, prints the
+NIRX renames an unparsable `config.json` to `config.json.broken`, prints the
 parse error and starts from defaults, so it always launches. Delete the file to
 reset everything, or fix it by hand using
 [configuration.md](configuration.md).
@@ -112,8 +112,8 @@ reset everything, or fix it by hand using
 Include:
 
 - what you did, what you expected, what happened,
-- whether it reproduces after deleting `~/.cache/nook`,
-- the output of running from a terminal (`cargo run` or `nook`) — Nook prints
+- whether it reproduces after deleting `~/.cache/nirx`,
+- the output of running from a terminal (`cargo run` or `nirx`) — NIRX prints
   startup errors such as a failure to serve the LocalSend port there,
 - your GTK version (`gtk4-launch --version` or the `libgtk-4-1` package
   version).
